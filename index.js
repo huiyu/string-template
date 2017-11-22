@@ -14,19 +14,27 @@ function Template(template, options) {
   this.resolveEscapes = true
   this.missingKeyReplacement = null
   this.parseValues = true
-  // TODO support arrays resolvement
   this.macroResolver = function (context, name) {
     var tokens = name.split(".")
     var obj = context
     for (var i = 0; i < tokens.length; i++) {
       var key = tokens[i]
-      obj = obj[key]
-      if (!obj) {
-        return null
+      if (obj[key]) {
+        obj = obj[key]
+        continue
       }
+      // process names with square brackets such as `arrays[1]`, `person[name]`
+      if (/\w*\[\w*\]/g.test(key)) {
+        var innerTokens = key.split(/\[|\]/g)
+        var innerObj = obj[innerTokens[0]]
+        if (innerObj && innerObj[innerTokens[1]]) {
+          obj = innerObj[innerTokens[1]]
+          continue
+        }
+      }
+      return null
     }
     return obj
-
   }
 
   if (options) {
