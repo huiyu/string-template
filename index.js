@@ -4,7 +4,7 @@
  * String template support parsing macros defined with velocity like markers.
  * 
  * @param {string} template 
- * @param {Options} options 
+ * @param {object} options 
  */
 function Template(template, options) {
   this.template = template
@@ -54,7 +54,7 @@ function Template(template, options) {
 /**
  * Render string template
  * 
- * @param {Object} context 
+ * @param {object} context 
  */
 Template.prototype.render = function (context) {
   var result = ""
