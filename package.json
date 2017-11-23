@@ -15,5 +15,10 @@
     "template"
   ],
   "author": "Yu Hui",
-  "license": "MIT"
+  "repository": "git@github.com:huiyu/string-template.git",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/huiyu/string-template/issues",
+    "email": "huiyu219@gmail.com"
+  }
 }
