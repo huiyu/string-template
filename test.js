@@ -39,7 +39,7 @@ describe("template test", function () {
           ]
         }
       }
-    ))
+    )).to.be.equals("Hugo's age is 25")
   })
 
   it("missing key replacement test", function () {
