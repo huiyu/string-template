@@ -61,7 +61,7 @@ template = new Template("Hello, ${target}")
 template.render({}) // -> throw TypeError
 ```
 
-###Custom escape character
+### Custom escape character
 
 ```javascript
 var template = new Template("Hello, $${target}", {
