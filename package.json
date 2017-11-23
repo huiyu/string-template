@@ -1,7 +1,7 @@
 {
-  "name": "string-template",
+  "name": "@huiyu/string-template",
   "version": "1.0.0",
-  "description": "A simple javascript string template",
+  "description": "A simple and customizable Javascript string template/",
   "main": "index.js",
   "scripts": {
     "test": "mocha test.js"
