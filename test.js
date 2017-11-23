@@ -54,4 +54,26 @@ describe("template test", function () {
     var t = new Template("Hello, ${greeting}")
     expect(() => t.render()).to.throw(TypeError)
   })
+
+  it("escape char test", function() {
+    var t = new Template("Cost: \\${money}")
+    expect(t.render({money: 4})).to.be.equal("Cost: ${money}")
+  })
+
+  it("custom escape char test", function() {
+    var t = new Template("Cost: $${money}", { escapeChar: "$"})
+    expect(t.render({money: 4})).to.be.equal("Cost: ${money}")
+    t = new Template("Cost: |${money}", { escapeChar: "|"})
+    expect(t.render({money: 4})).to.be.equal("Cost: ${money}")
+  })
+
+  it("custom macro markup test", function() {
+    var t = new Template("Hello, $[person]", {macroStart: "$[", macroEnd: "]"})
+    expect(t.render({person: "Jack"})).to.be.equal("Hello, Jack")
+  })
+
+  it("parse value test", function() {
+    var t = new Template("Hello, ${person}")
+    expect(t.render({person: "${user.name}", user : {name: "Jack"}})).to.be.equal("Hello, Jack")
+  })
 })

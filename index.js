@@ -4,52 +4,57 @@
  * String template support parsing macros defined with velocity like markers.
  * 
  * @param {string} template 
- * @param {*} options 
+ * @param {Options} options 
  */
 function Template(template, options) {
   this.template = template
-  this.macroStart = "${"
-  this.macroEnd = "}"
-  this.escapeChar = "\\"
-  this.resolveEscapes = true
-  this.missingKeyReplacement = null
-  this.parseValues = true
-  this.macroResolver = function (context, name) {
-    var tokens = name.split(".")
-    var obj = context
-    for (var i = 0; i < tokens.length; i++) {
-      var key = tokens[i]
-      if (obj[key]) {
-        obj = obj[key]
-        continue
-      }
-      // process names with square brackets such as `arrays[1]`, `person[name]`
-      if (/\w*\[\w*\]/g.test(key)) {
-        var innerTokens = key.split(/\[|\]/g)
-        var innerObj = obj[innerTokens[0]]
-        if (innerObj && innerObj[innerTokens[1]]) {
-          obj = innerObj[innerTokens[1]]
+  this.options = {
+    macroStart: "${",
+    macroEnd: "}",
+    escapeChar: "\\",
+    resolveEscapes: true,
+    missingKeyReplacement: null,
+    parseValues: true,
+    macroResolver: function (context, name) {
+      var tokens = name.split(".")
+      var obj = context
+      for (var i = 0; i < tokens.length; i++) {
+        var key = tokens[i]
+        if (obj[key]) {
+          obj = obj[key]
           continue
         }
+        // process names with square brackets such as `arrays[1]`, `person[name]`
+        if (/\w*\[\w*\]/g.test(key)) {
+          var innerTokens = key.split(/\[|\]/g)
+          var innerObj = obj[innerTokens[0]]
+          if (innerObj && innerObj[innerTokens[1]]) {
+            obj = innerObj[innerTokens[1]]
+            continue
+          }
+        }
+        return null
       }
-      return null
+      return obj
     }
-    return obj
   }
 
+  // extend options
   if (options) {
     for (var p in options) {
       if (options[p]) {
-        this[p] = options[p]
+        this.options[p] = options[p]
       }
     }
   }
 }
 
+
+
 /**
  * Render string template
  * 
- * @param {*} context 
+ * @param {Object} context 
  */
 Template.prototype.render = function (context) {
   var result = ""
@@ -57,9 +62,10 @@ Template.prototype.render = function (context) {
   var len = this.template.length
 
   var template = this.template
+  var options = this.options
 
   while (i < len) {
-    var idx = template.indexOf(this.macroStart, i)
+    var idx = template.indexOf(options.macroStart, i)
     if (idx == -1) {
       result += (i == 0 ? template : template.substring(i))
       break
@@ -69,7 +75,7 @@ Template.prototype.render = function (context) {
     var escape = false
     var count = 0
 
-    while (j >= 0 && template.charAt(j) == "\\") {
+    while (j >= 0 && template.charAt(j) == options.escapeChar) {
       escape = !escape
       if (escape) {
         count++
@@ -77,32 +83,32 @@ Template.prototype.render = function (context) {
       j--
     }
 
-    if (this.resolveEscapes) {
+    if (options.resolveEscapes) {
       result += template.substring(i, idx - count)
     } else {
       result += template.substring(i, idx)
     }
 
     if (escape) {
-      result += this.macroStart
-      i = idx + this.macroStart.length
+      result += options.macroStart
+      i = idx + options.macroStart.length
       continue
     }
 
     // find macros end
-    idx += this.macroStart.length
-    var idx2 = template.indexOf(this.macroEnd, idx)
+    idx += options.macroStart.length
+    var idx2 = template.indexOf(options.macroEnd, idx)
     if (idx == -1) {
-      throw new TypeError("Invalid template, unclosed macro at: " + (idx - this.macroStart.length))
+      throw new TypeError("Invalid template, unclosed macro at: " + (idx - options.macroStart.length))
     }
 
     var idx1 = idx
 
     var name = template.substring(idx1, idx2)
 
-    var value = this.macroResolver(context, name)
-    if (!value && this.missingKeyReplacement) {
-      value = this.missingKeyReplacement
+    var value = options.macroResolver(context, name)
+    if (!value && options.missingKeyReplacement) {
+      value = options.missingKeyReplacement
     }
 
     if (!value) {
@@ -112,17 +118,17 @@ Template.prototype.render = function (context) {
     }
 
     if (idx == idx1) {
-      if (this.parseValues) {
-        if (value.indexOf(this.macroStart) > 0) {
-          value = this.render(context)
+      if (options.parseValues) {
+        if (value.indexOf(options.macroStart) != -1) {
+          value = new Template(value, this.options).render(context)
         }
       }
       result += value
-      i = idx2 + this.macroEnd.length
+      i = idx2 + options.macroEnd.length
     } else {
-      template = template.substring(0, idx1 - this.macroStart.length) + value + template.substring(idx2 + this.macroEnd.length)
+      template = template.substring(0, idx1 - options.macroStart.length) + value + template.substring(idx2 + options.macroEnd.length)
       len = template.length
-      i = idx - this.macroStart.length
+      i = idx - options.macroStart.length
     }
   }
   return result
